@@ -45,7 +45,6 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
                     ui.vertical_centered_justified(|ui| {
                         if file_widget(ui, false, &file_name.to_string_lossy().to_string()).double_clicked() {
                             if entry.is_dir() {
-                                path_manager.previous_paths.push(path_manager.current_path.clone());
                                 path_manager.update_current_directory(entry);
                             }
                             else if entry.is_file() {
