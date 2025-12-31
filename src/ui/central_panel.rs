@@ -1,5 +1,5 @@
 use eframe::egui;
-use egui::{Image, ImageSource, Ui, Vec2};
+use egui::{CursorIcon, Image, ImageSource, Ui, Vec2};
 use egui::ScrollArea;
 use crate::actions::select_action::{SelectAction, SelectionMode};
 use crate::lang_string::{LangKeys, LangString};
@@ -8,6 +8,14 @@ use crate::ui::file_widget::file_widget;
 
 pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &ImageSource, file_img: &ImageSource) {
     if path_manager.update_folder_content {
+        if path_manager.update_cursor_icon {
+            ui.ctx().set_cursor_icon(CursorIcon::Wait);
+            path_manager.update_cursor_icon = false;
+            return;
+        }
+
+        ui.ctx().set_cursor_icon(CursorIcon::Default);
+
         if let Err(e) = path_manager.fill_directory_content() {
             ui.label(e.to_string());
             return;
@@ -74,6 +82,19 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
                                 }
                             }
                         }
+
+                        file_widget_response.context_menu(|ui| {
+                            // If the file is not selected, clear the selection
+                            // and add the current file to the selection
+                            if !select_action.is_file_selected(entry) {
+                                select_action.clear_selection();
+                                select_action.select_file(entry);
+                            }
+
+                            if ui.button("Unselect (test)").clicked() {
+                                select_action.deselect_file(entry);
+                            }
+                        });
                     });
                 });
             }

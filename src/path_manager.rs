@@ -1,6 +1,8 @@
 use std::{fs};
 use std::env::home_dir;
 use std::path::{PathBuf};
+use std::thread::sleep;
+use std::time::Duration;
 
 /// PathManager should answer these questions:
 /// * what is the default folder where we start? (maybe store this in a file and load it from file if exists)
@@ -26,6 +28,7 @@ pub struct PathManager {
     pub directory_action:       DirectoryActions,
     pub deleted_folder:         bool,
     pub update_folder_content:  bool,
+    pub update_cursor_icon:     bool,
 }
 
 impl PathManager {
@@ -48,6 +51,7 @@ impl PathManager {
             directory_action: DirectoryActions::DisplayContents,
             deleted_folder: home_path.exists(),
             update_folder_content: true,
+            update_cursor_icon: true,
         }
     }
 

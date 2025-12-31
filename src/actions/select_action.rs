@@ -80,6 +80,10 @@ impl SelectAction {
         }
     }
 
+    pub fn deselect_file(&mut self, file: &PathBuf) {
+        self.files.retain(|f| *f != *file);
+    }
+
     pub fn toggle_selection_mode(&mut self) {
         self.mode = match self.mode {
             SelectionMode::Single => SelectionMode::Multiple,
