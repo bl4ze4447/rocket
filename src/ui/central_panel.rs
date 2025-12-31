@@ -1,7 +1,7 @@
 use eframe::egui;
 use egui::{Image, ImageSource, Ui, Vec2};
 use egui::ScrollArea;
-use crate::actions::select_action::SelectAction;
+use crate::actions::select_action::{SelectAction, SelectionMode};
 use crate::lang_string::{LangKeys, LangString};
 use crate::path_manager::PathManager;
 use crate::ui::file_widget::file_widget;
@@ -32,6 +32,18 @@ pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManage
 fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &Image, file_img: &Image) {
     let total_widgets = path_manager.directory_content.len();
     let widget_row_height = ui.spacing().interact_size.y * 2.0;
+
+    ui.ctx().input(|input_state| {
+        // On Windows and Linux, set this to the same value as ctrl.
+        // On Mac, this should be set whenever one of the ⌘ Command keys is down (same as mac_cmd)
+        let new_mode = match (input_state.modifiers.shift, input_state.modifiers.command) {
+            (true, _) => SelectionMode::Ranged,
+            (false, true) => SelectionMode::Multiple,
+            (false, false) => SelectionMode::Single,
+        };
+
+        select_action.mode = new_mode;
+    });
 
     ScrollArea::both().show_rows(ui, widget_row_height, total_widgets, |ui, row_range| {
         let viewable_content = path_manager.directory_content[row_range].to_vec();
