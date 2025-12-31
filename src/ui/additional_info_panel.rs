@@ -13,8 +13,8 @@ pub fn show(ui: &mut Ui, lang_string: &LangString, select_action: &SelectAction,
                return;
            }
 
-           let file_img = Image::from(file_img.clone()).fit_to_exact_size(Vec2::new(128.0, 128.0));;
-           let folder_img = Image::from(folder_img.clone()).fit_to_exact_size(Vec2::new(128.0, 128.0));;
+           let file_img = Image::from(file_img.clone()).fit_to_exact_size(Vec2::new(128.0, 128.0));
+           let folder_img = Image::from(folder_img.clone()).fit_to_exact_size(Vec2::new(128.0, 128.0));
            for file in &select_action.files {
                generate_file_info_group(ui, lang_string, file, &file_img, &folder_img)
            }

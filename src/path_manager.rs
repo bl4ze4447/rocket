@@ -1,7 +1,6 @@
-use std::{env, fs};
-use std::cmp::Ordering;
+use std::{fs};
 use std::env::home_dir;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 /// PathManager should answer these questions:
 /// * what is the default folder where we start? (maybe store this in a file and load it from file if exists)
