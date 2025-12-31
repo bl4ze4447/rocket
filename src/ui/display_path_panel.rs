@@ -1,3 +1,4 @@
+use std::path;
 use std::path::PathBuf;
 use eframe::egui;
 use egui::{Button, Image, ImageSource, Label, TextStyle, Ui, Vec2, WidgetText};
@@ -40,7 +41,7 @@ pub fn show(ui: &mut Ui, path_manager: &mut PathManager, folder_img: &ImageSourc
                     }
 
                     if current_path.parent().is_some() {
-                        ui.label("/");
+                        ui.label(String::from(path::MAIN_SEPARATOR));
                     }
                 }
             });

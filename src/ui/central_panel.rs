@@ -1,11 +1,12 @@
 use eframe::egui;
 use egui::{Image, ImageSource, Ui, Vec2};
 use egui::ScrollArea;
+use crate::actions::select_action::SelectAction;
 use crate::lang_string::{LangKeys, LangString};
 use crate::path_manager::PathManager;
 use crate::ui::file_widget::file_widget;
 
-pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, folder_img: &ImageSource, file_img: &ImageSource) {
+pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &ImageSource, file_img: &ImageSource) {
     if path_manager.update_folder_content {
         if let Err(e) = path_manager.fill_directory_content() {
             ui.label(e.to_string());
@@ -23,10 +24,10 @@ pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManage
         return;
     }
 
-    directory_builder(ui, lang_string, path_manager, folder_img, file_img);
+    directory_builder(ui, lang_string, path_manager, select_action, folder_img, file_img);
 }
 
-fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, folder_img: &ImageSource, file_img: &ImageSource) {
+fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &ImageSource, file_img: &ImageSource) {
     let total_widgets = path_manager.directory_content.len();
     let widget_row_height = ui.spacing().interact_size.y * 2.0;
 
@@ -43,7 +44,13 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
                     }
 
                     ui.vertical_centered_justified(|ui| {
-                        if file_widget(ui, false, &file_name.to_string_lossy().to_string()).double_clicked() {
+                        let file_widget_response = file_widget(ui, select_action.is_file_selected(entry), &file_name.to_string_lossy().to_string());
+
+                        if file_widget_response.clicked() {
+                            select_action.select_file(entry);
+                        }
+
+                        if file_widget_response.double_clicked() {
                             if entry.is_dir() {
                                 path_manager.update_current_directory(entry);
                             }

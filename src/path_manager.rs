@@ -79,9 +79,11 @@ impl PathManager {
                 .map(|entry| entry.path())
         );
 
-        self.directory_content.sort_unstable_by_key(|key| {
+        self.directory_content.sort();
+        self.directory_content.sort_by_key(|key| {
             key.metadata().map(|metadata| metadata.is_file()).unwrap_or(true)
         });
+
 
         Ok(())
     }

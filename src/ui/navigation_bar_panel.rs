@@ -11,7 +11,6 @@ use crate::path_manager::PathManager;
 pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager) {
     ui.horizontal(|ui| {
         if ui.button(lang_string.get(LangKeys::GoBack)).clicked() {
-            println!("{:?}", path_manager.previous_paths);
             if let Some(new_path) = path_manager.previous_paths.pop() {
                 path_manager.next_paths.push(path_manager.current_path.clone());
                 path_manager.current_path = new_path;
