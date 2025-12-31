@@ -24,10 +24,12 @@ pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManage
         return;
     }
 
-    directory_builder(ui, lang_string, path_manager, select_action, folder_img, file_img);
+    let folder_img = Image::new(folder_img.clone()).fit_to_exact_size(Vec2::new(32.0, 32.0));
+    let file_img = Image::new(file_img.clone()).fit_to_exact_size(Vec2::new(32.0, 32.0));
+    directory_builder(ui, lang_string, path_manager, select_action, &folder_img, &file_img);
 }
 
-fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &ImageSource, file_img: &ImageSource) {
+fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &Image, file_img: &Image) {
     let total_widgets = path_manager.directory_content.len();
     let widget_row_height = ui.spacing().interact_size.y * 2.0;
 
@@ -38,9 +40,9 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
             if let Some(file_name) = file_name {
                 ui.horizontal(|ui| {
                     if entry.is_dir() {
-                        ui.add(Image::new(folder_img.clone()).fit_to_exact_size(Vec2::new(32.0, 32.0)));
+                        ui.add(folder_img.clone());
                     } else {
-                        ui.add(Image::new(file_img.clone()).fit_to_exact_size(Vec2::new(32.0, 32.0)));
+                        ui.add(file_img.clone());
                     }
 
                     ui.vertical_centered_justified(|ui| {
