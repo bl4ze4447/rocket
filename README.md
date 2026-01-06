@@ -20,7 +20,7 @@ You must have the Rust toolchain installed. If you haven't installed it yet, vis
 
 1.  **Clone the repository**:
     ```bash
-    git clone [https://github.com/bl4ze4447/rocket.git](https://github.com/bl4ze4447/rocket.git)
+    git clone https://github.com/bl4ze4447/rocket.git
     ```
 2.  **Navigate to the project folder**:
     ```bash
