@@ -39,7 +39,9 @@ fn generate_file_info_group(
             {
                 ui.group(|ui| {
                     ui.add(
-                        Image::new(icons_manager.get_icon(&file.into()).clone())
+                        icons_manager
+                            .get_icon(&file.into())
+                            .clone()
                             .fit_to_exact_size(Vec2::new(128.0, 128.0)),
                     );
                     ui.heading(file_name);

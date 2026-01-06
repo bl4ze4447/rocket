@@ -1,10 +1,10 @@
 use crate::path_manager::PathManager;
 use eframe::egui;
-use egui::{Button, Image, ImageSource, Label, TextStyle, Ui, Vec2, WidgetText};
+use egui::{Button, Image, Label, TextStyle, Ui, Vec2, WidgetText};
 use std::path;
 use std::path::PathBuf;
 
-pub fn show(ui: &mut Ui, path_manager: &mut PathManager, folder_img: &ImageSource) {
+pub fn show(ui: &mut Ui, path_manager: &mut PathManager, folder_img: &Image) {
     let available_space = ui.available_size();
 
     ui.allocate_ui_with_layout(
@@ -12,7 +12,7 @@ pub fn show(ui: &mut Ui, path_manager: &mut PathManager, folder_img: &ImageSourc
         egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
         |ui| {
             ui.horizontal(|ui| {
-                ui.add(Image::from(folder_img.clone()).fit_to_exact_size(Vec2::new(64.0, 64.0)));
+                ui.add(folder_img.clone().fit_to_exact_size(Vec2::new(64.0, 64.0)));
 
                 let mut current_path = PathBuf::new();
                 let path = path_manager.current_path.clone();
