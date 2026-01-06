@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::lang_string::{LangKeys, LangString};
 use std::path::PathBuf;
 
@@ -10,7 +11,7 @@ pub enum SelectionMode {
 
 pub enum SelectionResult {
     Single(PathBuf),
-    Multiple(Vec<PathBuf>),
+    Multiple(HashSet<PathBuf>),
     Err(String),
 }
 
@@ -26,7 +27,7 @@ impl SelectionResult {
 
 pub struct SelectAction {
     /// Selected files
-    pub files: Vec<PathBuf>,
+    pub files: HashSet<PathBuf>,
 
     /// Current selection mode
     pub mode: SelectionMode,
@@ -35,7 +36,7 @@ pub struct SelectAction {
 impl SelectAction {
     pub fn new() -> Self {
         Self {
-            files: Vec::new(),
+            files: HashSet::new(),
             mode: SelectionMode::Single,
         }
     }
@@ -44,14 +45,14 @@ impl SelectAction {
         self.files.contains(file)
     }
 
-    pub fn select_file(&mut self, file: &PathBuf) {
+    pub fn select_file(&mut self, file: &PathBuf, directory_content: Option<&[PathBuf]>) {
         match self.mode {
             // Only one file can be selected at a time
             // If the file is already selected, deselect it
             SelectionMode::Single => {
                 if !self.files.is_empty() {
                     self.files.clear();
-                    self.files.push(file.clone());
+                    self.files.insert(file.clone());
                     return;
                 }
 
@@ -60,7 +61,7 @@ impl SelectAction {
                     return;
                 }
 
-                self.files.push(file.clone());
+                self.files.insert(file.clone());
             }
 
             // Multiple files can be selected
@@ -71,11 +72,27 @@ impl SelectAction {
                     return;
                 }
 
-                self.files.push(file.clone());
+                self.files.insert(file.clone());
             }
 
             SelectionMode::Ranged => {
-                // todo(bl4ze4447):
+                let Some(content) = directory_content else { return; };
+
+                let Some(target_idx) = content.iter().position(|f| f == file) else { return; };
+
+                let start_idx = content.iter()
+                    .enumerate()
+                    .rev()
+                    .find(|(_, f)| self.files.contains(*f))
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(0);
+
+                let min = start_idx.min(target_idx);
+                let max = start_idx.max(target_idx);
+
+                for i in min..=max {
+                    self.files.insert(content[i].clone());
+                }
             }
         }
     }
@@ -98,14 +115,16 @@ impl SelectAction {
     }
 
     pub fn get_selected_files(&self, lang_string: &LangString) -> SelectionResult {
-        if self.files.is_empty() {
+        // Attempt to get the first file immediately
+        let Some(first_file) = self.files.iter().next() else {
             return SelectionResult::Err(lang_string.get(LangKeys::NothingSelected));
-        }
+        };
 
         match self.mode {
-            SelectionMode::Single => SelectionResult::Single(self.files[0].clone()),
-            SelectionMode::Multiple => SelectionResult::Multiple(self.files.clone()),
-            SelectionMode::Ranged => SelectionResult::Multiple(self.files.clone()),
+            SelectionMode::Single => SelectionResult::Single(first_file.clone()),
+            SelectionMode::Multiple | SelectionMode::Ranged => {
+                SelectionResult::Multiple(self.files.clone())
+            }
         }
     }
 

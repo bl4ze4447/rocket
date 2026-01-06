@@ -4,7 +4,7 @@ use crate::lang_string::{LangKeys, LangString};
 use crate::path_manager::PathManager;
 use crate::ui::file_widget::file_widget;
 use eframe::egui;
-use egui::{CursorIcon, Image, Ui, Vec2};
+use egui::{CursorIcon, Ui, Vec2};
 use egui::{Response, ScrollArea};
 use std::path::PathBuf;
 
@@ -80,12 +80,19 @@ fn directory_builder(
 
     ScrollArea::both().show_rows(ui, widget_row_height, total_widgets, |ui, row_range| {
         // For directory_content[row_range] represents the viewable entries
-        for entry in &directory_content[row_range] {
+        for (index, entry) in directory_content[row_range].iter().enumerate() {
             let new_possible_path = entry
                 .file_name()
                 .and_then(|file_name| file_name.to_str())
                 .and_then(|file_name| {
-                    file_row_ui(ui, entry, &file_name.into(), select_action, icons_manager)
+                    file_row_ui(
+                        ui,
+                        directory_content,
+                        entry,
+                        &file_name.into(),
+                        select_action,
+                        icons_manager,
+                    )
                 });
 
             if new_possible_path.is_some() {
@@ -99,6 +106,7 @@ fn directory_builder(
 
 fn file_row_ui(
     ui: &mut Ui,
+    directory_content: &[PathBuf],
     entry: &PathBuf,
     file_name: &String,
     select_action: &mut SelectAction,
@@ -120,7 +128,7 @@ fn file_row_ui(
                 file_widget(ui, select_action.is_file_selected(entry), file_name);
 
             if file_widget_response.clicked() {
-                select_action.select_file(entry);
+                select_action.select_file(entry, Some(directory_content));
             }
 
             if file_widget_response.double_clicked() {
@@ -149,7 +157,7 @@ fn file_context_menu(
         // and add the current file to the selection
         if !select_action.is_file_selected(entry) {
             select_action.clear_selection();
-            select_action.select_file(entry);
+            select_action.select_file(entry, None);
         }
 
         if ui.button("Unselect (test)").clicked() {
