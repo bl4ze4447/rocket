@@ -1,64 +1,69 @@
-use std::{fs};
+use rayon::prelude::*;
 use std::env::home_dir;
-use std::path::{PathBuf};
-use std::thread::sleep;
-use std::time::Duration;
+use std::fs;
+use std::path::{Path, PathBuf};
 
-/// PathManager should answer these questions:
-/// * what is the default folder where we start? (maybe store this in a file and load it from file if exists)
-/// * where are we?
-/// * what files are inside?
-/// * history of previous paths?
-/// * history of paths where we went back to (Vec<PathBuf> which holds every path when we pressed Go Back)
-/// * are we showing the directory contents or are we searching for a file? (enum)
-/// * did we go back to a deleted folder?
-/// * did we change folders?
-
+#[derive(PartialEq)]
 pub enum DirectoryActions {
-    DisplayContents,
-    Searching
+    DisplayDirectory,
+    DisplaySearchContent,
 }
 
 pub struct PathManager {
-    default_path:               PathBuf,
-    pub current_path:           PathBuf,
-    pub previous_paths:         Vec<PathBuf>,
-    pub next_paths:             Vec<PathBuf>,
-    pub directory_content:      Vec<PathBuf>,
-    pub directory_action:       DirectoryActions,
-    pub deleted_folder:         bool,
-    pub update_folder_content:  bool,
-    pub update_cursor_icon:     bool,
+    /// The current directory path being viewed in the application.
+    pub current_path: PathBuf,
+
+    /// A stack of previously visited paths, used for "Go Back" navigation.
+    pub previous_paths: Vec<PathBuf>,
+
+    /// A stack of paths used for "Go Forward" navigation after moving backward in history.
+    pub next_paths: Vec<PathBuf>,
+
+    /// A list of files and folders contained within the current directory.
+    pub directory_content: Vec<PathBuf>,
+
+    /// The active directory action (displaying directory/search content).
+    pub directory_action: DirectoryActions,
+
+    /// This flag indicates if the current_path indicates to a deleted folder.
+    ///
+    /// This could occur if we "Go Back or Forward" to a deleted folder.
+    pub deleted_folder: bool,
+
+    /// This flag signals to the application that directory_content must be updated.
+    pub update_folder_content: bool,
+
+    /// A flag used to signal that the mouse cursor icon should be updated (e.g., to a loading or pointer state).
+    pub update_cursor_icon: bool,
 }
 
 impl PathManager {
     pub fn new() -> Self {
-        let home_path = home_dir()
-            .unwrap_or_else(|| {
-                if cfg!(windows) {
-                    PathBuf::from("C://")
-                } else {
-                    PathBuf::from("/")
-                }
+        let home_path = home_dir().unwrap_or_else(|| {
+            if cfg!(windows) {
+                PathBuf::from("C://")
+            } else {
+                PathBuf::from("/")
+            }
         });
 
         PathManager {
-            default_path: home_path.clone(),
             current_path: home_path.clone(),
             previous_paths: Vec::new(),
             next_paths: Vec::new(),
             directory_content: Vec::new(),
-            directory_action: DirectoryActions::DisplayContents,
+            directory_action: DirectoryActions::DisplayDirectory,
             deleted_folder: home_path.exists(),
             update_folder_content: true,
             update_cursor_icon: true,
         }
     }
 
-    pub fn update_current_directory(&mut self, path: &PathBuf) {
+    pub fn update_current_directory(&mut self, path: &Path) {
         self.previous_paths.push(self.current_path.clone());
-        self.current_path = path.clone();
+        self.current_path = path.into();
         self.update_folder_content = true;
+        self.directory_action = DirectoryActions::DisplayDirectory;
     }
 
     pub fn fill_directory_content(&mut self) -> std::io::Result<()> {
@@ -79,14 +84,15 @@ impl PathManager {
         self.directory_content.extend(
             entries
                 .filter_map(|entry| entry.ok())
-                .map(|entry| entry.path())
+                .map(|entry| entry.path()),
         );
 
         self.directory_content.sort();
         self.directory_content.sort_by_key(|key| {
-            key.metadata().map(|metadata| metadata.is_file()).unwrap_or(true)
+            key.metadata()
+                .map(|metadata| metadata.is_file())
+                .unwrap_or(true)
         });
-
 
         Ok(())
     }

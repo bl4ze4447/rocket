@@ -1,40 +1,55 @@
-use std::path::PathBuf;
-use eframe::egui;
-use egui::{Image, ImageSource, Label, TextBuffer, TextStyle, Ui, Vec2, WidgetText};
-use chrono::{DateTime, Local};
 use crate::actions::select_action::SelectAction;
+use crate::icons_manager::IconsManager;
 use crate::lang_string::{LangKeys, LangString};
+use chrono::{DateTime, Local};
+use eframe::egui;
+use egui::{Image, Ui, Vec2};
+use std::path::Path;
 
-pub fn show(ui: &mut Ui, lang_string: &LangString, select_action: &SelectAction, file_img: &ImageSource, folder_img: &ImageSource) {
+pub fn show(
+    ui: &mut Ui,
+    lang_string: &LangString,
+    select_action: &SelectAction,
+    icons_manager: &IconsManager,
+) {
     egui::ScrollArea::vertical().show(ui, |ui| {
-       ui.vertical_centered(|ui| {
-           if select_action.files.is_empty() {
-               ui.label(lang_string.get(LangKeys::NothingSelected));
-               return;
-           }
+        ui.vertical_centered(|ui| {
+            if select_action.files.is_empty() {
+                ui.label(lang_string.get(LangKeys::NothingSelected));
+                return;
+            }
 
-           let file_img = Image::from(file_img.clone()).fit_to_exact_size(Vec2::new(128.0, 128.0));
-           let folder_img = Image::from(folder_img.clone()).fit_to_exact_size(Vec2::new(128.0, 128.0));
-           for file in &select_action.files {
-               generate_file_info_group(ui, lang_string, file, &file_img, &folder_img)
-           }
-       })
+            for file in &select_action.files {
+                generate_file_info_group(ui, lang_string, file, icons_manager);
+            }
+        })
     });
 }
 
-fn generate_file_info_group(ui: &mut Ui, lang_string: &LangString, file: &PathBuf, file_img: &Image, folder_img: &Image) {
+fn generate_file_info_group(
+    ui: &mut Ui,
+    lang_string: &LangString,
+    file: &Path,
+    icons_manager: &IconsManager,
+) {
     match file.metadata() {
         Ok(metadata) => {
-            if let Some(filename) = file.file_name() {
+            if let Some(file_name) = file.file_name()
+                && let Some(file_name) = file_name.to_str()
+            {
                 ui.group(|ui| {
-
-                    let icon = if file.is_dir() || file.is_symlink() { folder_img } else { file_img };
-                    ui.add(icon.clone());
-                    ui.add(Label::new(WidgetText::from(filename.to_string_lossy()).text_style(TextStyle::Heading)));
+                    ui.add(
+                        Image::new(icons_manager.get_icon(&file.into()).clone())
+                            .fit_to_exact_size(Vec2::new(128.0, 128.0)),
+                    );
+                    ui.heading(file_name);
 
                     ui.group(|ui| {
-                        if let Some(extension) = file.extension() && metadata.is_file() {
-                            ui.label(lang_string.get(LangKeys::Extension) + extension.to_string_lossy().as_str());
+                        if let Some(extension) = file.extension()
+                            && let Some(extension) = extension.to_str()
+                            && metadata.is_file()
+                        {
+                            ui.label(lang_string.get(LangKeys::Extension) + extension);
                         }
 
                         let bytes = metadata.len();
@@ -47,15 +62,24 @@ fn generate_file_info_group(ui: &mut Ui, lang_string: &LangString, file: &PathBu
 
                         if let Ok(time) = metadata.created() {
                             date_time = time.into();
-                            ui.label(lang_string.get(LangKeys::CreatedAt) + date_time.format(DATE_TIME_FORMAT).to_string().as_str());
+                            ui.label(
+                                lang_string.get(LangKeys::CreatedAt)
+                                    + date_time.format(DATE_TIME_FORMAT).to_string().as_str(),
+                            );
                         }
                         if let Ok(time) = metadata.accessed() {
                             date_time = time.into();
-                            ui.label(lang_string.get(LangKeys::AccessedAt) + date_time.format(DATE_TIME_FORMAT).to_string().as_str());
+                            ui.label(
+                                lang_string.get(LangKeys::AccessedAt)
+                                    + date_time.format(DATE_TIME_FORMAT).to_string().as_str(),
+                            );
                         }
                         if let Ok(time) = metadata.modified() {
                             date_time = time.into();
-                            ui.label(lang_string.get(LangKeys::ModifiedAt) + date_time.format(DATE_TIME_FORMAT).to_string().as_str());
+                            ui.label(
+                                lang_string.get(LangKeys::ModifiedAt)
+                                    + date_time.format(DATE_TIME_FORMAT).to_string().as_str(),
+                            );
                         }
                     });
                 });
@@ -64,7 +88,7 @@ fn generate_file_info_group(ui: &mut Ui, lang_string: &LangString, file: &PathBu
 
         Err(e) => {
             // todo(bl4ze4447):
-            println!("{}", e.to_string());
+            println!("{}", e);
         }
     }
 }

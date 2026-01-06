@@ -9,7 +9,7 @@ pub struct Actions {
 impl Actions {
     pub fn new() -> Self {
         Self {
-            select_action: SelectAction::new()
+            select_action: SelectAction::new(),
         }
     }
 }

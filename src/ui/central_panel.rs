@@ -1,13 +1,22 @@
-use eframe::egui;
-use egui::{CursorIcon, Image, ImageSource, Ui, Vec2};
-use egui::ScrollArea;
 use crate::actions::select_action::{SelectAction, SelectionMode};
+use crate::icons_manager::IconsManager;
 use crate::lang_string::{LangKeys, LangString};
 use crate::path_manager::PathManager;
 use crate::ui::file_widget::file_widget;
+use eframe::egui;
+use egui::ScrollArea;
+use egui::{CursorIcon, Image, Ui, Vec2};
+use std::path::PathBuf;
 
-pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &ImageSource, file_img: &ImageSource) {
+pub fn show(
+    ui: &mut Ui,
+    lang_string: &LangString,
+    path_manager: &mut PathManager,
+    select_action: &mut SelectAction,
+    icons_manager: &IconsManager,
+) {
     if path_manager.update_folder_content {
+        // Do we need to 'waste' this frame to update the cursor?
         if path_manager.update_cursor_icon {
             ui.ctx().set_cursor_icon(CursorIcon::Wait);
             path_manager.update_cursor_icon = false;
@@ -16,6 +25,7 @@ pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManage
 
         ui.ctx().set_cursor_icon(CursorIcon::Default);
 
+        // todo
         if let Err(e) = path_manager.fill_directory_content() {
             ui.label(e.to_string());
             return;
@@ -32,13 +42,24 @@ pub fn show(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManage
         return;
     }
 
-    let folder_img = Image::new(folder_img.clone()).fit_to_exact_size(Vec2::new(32.0, 32.0));
-    let file_img = Image::new(file_img.clone()).fit_to_exact_size(Vec2::new(32.0, 32.0));
-    directory_builder(ui, lang_string, path_manager, select_action, &folder_img, &file_img);
+    if let Some(new_current_path) = directory_builder(
+        ui,
+        &path_manager.directory_content,
+        select_action,
+        &icons_manager,
+    ) {
+        path_manager.update_current_directory(&new_current_path);
+        select_action.clear_selection();
+    }
 }
 
-fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut PathManager, select_action: &mut SelectAction, folder_img: &Image, file_img: &Image) {
-    let total_widgets = path_manager.directory_content.len();
+fn directory_builder(
+    ui: &mut Ui,
+    directory_content: &[PathBuf],
+    select_action: &mut SelectAction,
+    icons_manager: &IconsManager,
+) -> Option<PathBuf> {
+    let total_widgets = directory_content.len();
     let widget_row_height = ui.spacing().interact_size.y * 2.0;
 
     ui.ctx().input(|input_state| {
@@ -53,20 +74,24 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
         select_action.mode = new_mode;
     });
 
+    let mut new_current_path = None;
     ScrollArea::both().show_rows(ui, widget_row_height, total_widgets, |ui, row_range| {
-        let viewable_content = path_manager.directory_content[row_range].to_vec();
+        let viewable_content = directory_content[row_range].to_vec();
         for entry in &viewable_content {
             let file_name = entry.file_name();
             if let Some(file_name) = file_name {
                 ui.horizontal(|ui| {
-                    if entry.is_dir() {
-                        ui.add(folder_img.clone());
-                    } else {
-                        ui.add(file_img.clone());
-                    }
+                    ui.add(
+                        Image::new(icons_manager.get_icon(&entry).clone())
+                            .fit_to_exact_size(Vec2::new(32.0, 32.0)),
+                    );
 
                     ui.vertical_centered_justified(|ui| {
-                        let file_widget_response = file_widget(ui, select_action.is_file_selected(entry), &file_name.to_string_lossy().to_string());
+                        let file_widget_response = file_widget(
+                            ui,
+                            select_action.is_file_selected(entry),
+                            &file_name.to_string_lossy().to_string(),
+                        );
 
                         if file_widget_response.clicked() {
                             select_action.select_file(entry);
@@ -74,12 +99,10 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
 
                         if file_widget_response.double_clicked() {
                             if entry.is_dir() {
-                                path_manager.update_current_directory(entry);
-                            }
-                            else if entry.is_file() {
+                                new_current_path = Some(entry.clone());
+                            } else if entry.is_file() {
                                 // todo(bl4ze4447): error modal to display information
-                                if let Err(err) = opener::open(entry) {
-                                }
+                                if let Err(_) = opener::open(entry) {}
                             }
                         }
 
@@ -100,5 +123,6 @@ fn directory_builder(ui: &mut Ui, lang_string: &LangString, path_manager: &mut P
             }
         }
     });
-}
 
+    new_current_path
+}

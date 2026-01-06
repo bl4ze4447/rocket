@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use crate::lang_string::{LangKeys, LangString};
+use std::path::PathBuf;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum SelectionMode {
@@ -11,7 +11,7 @@ pub enum SelectionMode {
 pub enum SelectionResult {
     Single(PathBuf),
     Multiple(Vec<PathBuf>),
-    Err(String)
+    Err(String),
 }
 
 impl SelectionResult {
@@ -19,16 +19,16 @@ impl SelectionResult {
         match self {
             SelectionResult::Single(path) => SelectionResult::Single(path.clone()),
             SelectionResult::Multiple(paths) => SelectionResult::Multiple(paths.clone()),
-            SelectionResult::Err(err) => SelectionResult::Err(err.clone())
+            SelectionResult::Err(err) => SelectionResult::Err(err.clone()),
         }
     }
 }
 
-/// This should answer these questions:
-/// * what files/folders are selected? we go the unix way for calling, everything is a 'file'
-/// * how are we selecting files? one by one, multiple, etc.
 pub struct SelectAction {
+    /// Selected files
     pub files: Vec<PathBuf>,
+
+    /// Current selection mode
     pub mode: SelectionMode,
 }
 
@@ -36,7 +36,7 @@ impl SelectAction {
     pub fn new() -> Self {
         Self {
             files: Vec::new(),
-            mode: SelectionMode::Single
+            mode: SelectionMode::Single,
         }
     }
 
@@ -44,7 +44,7 @@ impl SelectAction {
         self.files.contains(file)
     }
 
-    pub fn select_file(&mut self, file: &PathBuf, ) {
+    pub fn select_file(&mut self, file: &PathBuf) {
         match self.mode {
             // Only one file can be selected at a time
             // If the file is already selected, deselect it
