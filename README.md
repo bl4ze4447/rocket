@@ -2,11 +2,14 @@
 
 A high-performance, **native**, and **cross-platform** file manager built from the ground up in **Rust**. Rocket focuses on speed, memory safety, and a seamless user experience across different environments.
 
+<img width="1313" height="800" alt="Screenshot 2026-01-07 at 20 58 10" src="https://github.com/user-attachments/assets/7f0ca33f-5b68-4412-b4ab-da65400170c4" />
+
 ## Features
 
 * **Native & Cross-platform**: Developed to run natively with high efficiency on multiple operating systems.
 * **Built with Rust & egui**: Utilizes the power of **Rust** for core logic and the **egui** library for a responsive, immediate-mode graphical user interface.
 * **Concurrent Action Modals**: Unlike traditional file managers, Rocket uses a non-blocking modal system. You can perform multiple actions (Copy, Move, Rename, etc.) simultaneously, with each operation having its own informative modal window.
+
 * **Parallelized Search**: Features an ultra-fast search engine that leverages Rust's concurrency model to scan the file system in parallel, delivering results blazingly fast.
 * **Modern UI**: A clean, dark-themed interface designed for clarity and ease of use.
 
