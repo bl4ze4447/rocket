@@ -36,6 +36,6 @@ You must have the Rust toolchain installed. If you haven't installed it yet, vis
 
 ## Contributing
 
-Contributions are welcome! If you have ideas for improvements or find any issues, feel free to open a pull request or an issue on the [GitHub repository](https://github.com/bl4ze4447/rocket).
+Contributions are welcome! If you have ideas for improvements or find any issues, feel free to open a pull request or an issue on the [GitHub repository]
 
 ---
