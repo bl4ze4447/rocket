@@ -19,7 +19,7 @@ use crate::ui::{
 use eframe::egui;
 use egui::{Context, Id};
 
-const APP_NAME: &str = "Rocket [0.0.18]";
+const APP_NAME: &str = "Rocket [0.0.19]";
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
@@ -103,7 +103,7 @@ impl eframe::App for Rocket<'_> {
                 ui,
                 &self.lang_string,
                 &mut self.path_manager,
-                &mut self.actions.select_action,
+                &mut self.actions,
                 &self.icons_manager,
             );
         });

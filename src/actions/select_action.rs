@@ -1,4 +1,5 @@
 use crate::lang_string::{LangKeys, LangString};
+use egui::Key;
 use std::collections::HashSet;
 use std::path::PathBuf;
 
@@ -25,12 +26,33 @@ impl SelectionResult {
     }
 }
 
+pub struct KeySelect {
+    /// Current key being pressed
+    /// ! Garbage value when was_pressed == false
+    pub key: Key,
+
+    /// Was the key pressed in previous frames?
+    /// This is set to false when the key is released
+    pub was_pressed: bool,
+
+    /// Do we need to scroll to the widget?
+    pub scroll_to_widget: bool,
+
+    /// Where is the scrollbar currently?
+    pub scroll_offset_y: f32,
+}
+
 pub struct SelectAction {
     /// Selected files
     pub files: HashSet<PathBuf>,
 
     /// Current selection mode
     pub mode: SelectionMode,
+
+    /// For 'key' selection
+    /// Did we press a key to select a file?
+    /// What key?
+    pub key_select: KeySelect,
 }
 
 impl SelectAction {
@@ -38,6 +60,12 @@ impl SelectAction {
         Self {
             files: HashSet::new(),
             mode: SelectionMode::Single,
+            key_select: KeySelect {
+                key: Key::A,
+                was_pressed: false,
+                scroll_to_widget: false,
+                scroll_offset_y: 0.0,
+            },
         }
     }
 
@@ -100,6 +128,15 @@ impl SelectAction {
                 }
             }
         }
+    }
+
+    pub fn select_file_by_key(&mut self, file: &PathBuf, key: Key) {
+        self.clear_selection();
+
+        self.files.insert(file.clone());
+        self.key_select.key = key;
+        self.key_select.was_pressed = true;
+        self.key_select.scroll_to_widget = true;
     }
 
     pub fn deselect_file(&mut self, file: &PathBuf) {
