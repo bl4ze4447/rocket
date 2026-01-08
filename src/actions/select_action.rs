@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use crate::lang_string::{LangKeys, LangString};
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -76,11 +76,16 @@ impl SelectAction {
             }
 
             SelectionMode::Ranged => {
-                let Some(content) = directory_content else { return; };
+                let Some(content) = directory_content else {
+                    return;
+                };
 
-                let Some(target_idx) = content.iter().position(|f| f == file) else { return; };
+                let Some(target_idx) = content.iter().position(|f| f == file) else {
+                    return;
+                };
 
-                let start_idx = content.iter()
+                let start_idx = content
+                    .iter()
                     .enumerate()
                     .rev()
                     .find(|(_, f)| self.files.contains(*f))
