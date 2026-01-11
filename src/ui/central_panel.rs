@@ -9,10 +9,12 @@ use egui::{Align, CursorIcon, Key, Pos2, Rect, Ui, Vec2};
 use egui::{Response, ScrollArea};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU32, Ordering};
+use crate::error_modal::ErrorModal;
 
 pub fn show(
     ui: &mut Ui,
     lang_string: &LangString,
+    general_error_modal: &mut ErrorModal,
     path_manager: &mut PathManager,
     actions: &mut Actions,
     icons_manager: &IconsManager,
@@ -28,8 +30,9 @@ pub fn show(
         ui.ctx().set_cursor_icon(CursorIcon::Default);
 
         // todo
-        if let Err(e) = path_manager.fill_directory_content() {
-            ui.label(e.to_string());
+        if let Err(err) = path_manager.fill_directory_content() {
+            general_error_modal.set_title_and_caption(&"Fill Directory Content Error".to_string(), &err.to_string());
+            general_error_modal.set_visible(true);
             return;
         }
     }
@@ -47,6 +50,7 @@ pub fn show(
     if let Some(new_current_path) = directory_builder(
         ui,
         lang_string,
+        general_error_modal,
         &path_manager.directory_content,
         actions,
         &icons_manager,
@@ -59,12 +63,13 @@ pub fn show(
 fn directory_builder(
     ui: &mut Ui,
     lang_string: &LangString,
+    general_error_modal: &mut ErrorModal,
     directory_content: &[PathBuf],
     actions: &mut Actions,
     icons_manager: &IconsManager,
 ) -> Option<PathBuf> {
     let total_widgets = directory_content.len();
-    let widget_row_height = ui.spacing().interact_size.y * 2.0;
+    let widget_row_height = ui.spacing().interact_size.y * 1.65;
 
     // todo: this is kind of ugly
     static SCROLL_OFFSET_Y: AtomicU32 = AtomicU32::new(0);
@@ -140,7 +145,7 @@ fn directory_builder(
                     .and_then(|file_name| {
                         file_row_ui(
                             ui,
-                            lang_string,
+                            general_error_modal,
                             directory_content,
                             entry,
                             &file_name.into(),
@@ -164,12 +169,7 @@ fn directory_builder(
                     .find(|(_, entry)| entry.as_path() == path.as_path());
                 if let Some((idx, _)) = entry {
                     let bits = SCROLL_OFFSET_Y.load(Ordering::Relaxed);
-                    scroll_to_file_widget(
-                        ui,
-                        idx + 1,
-                        widget_row_height,
-                        f32::from_bits(bits),
-                    );
+                    scroll_to_file_widget(ui, idx + 1, widget_row_height, f32::from_bits(bits));
                     actions.select_action.key_select.scroll_to_widget = false;
                 }
             }
@@ -201,7 +201,7 @@ fn scroll_to_file_widget(
 
 fn file_row_ui(
     ui: &mut Ui,
-    lang_string: &LangString,
+    general_error_modal: &mut ErrorModal,
     directory_content: &[PathBuf],
     entry: &PathBuf,
     file_name: &String,
@@ -233,8 +233,10 @@ fn file_row_ui(
                 if entry.is_dir() {
                     new_current_path = Some(entry.clone());
                 } else {
-                    // todo(bl4ze4447): error modal to display information
-                    if let Err(_) = opener::open(entry) {}
+                    if let Err(err) = opener::open(entry) {
+                        general_error_modal.set_title_and_caption(&"Opener Error".to_string(), &err.to_string());
+                        general_error_modal.set_visible(true);
+                    }
                 }
             }
 

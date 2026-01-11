@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod actions;
+mod error_modal;
 mod icons_manager;
 mod lang_string;
 mod path_manager;
@@ -18,6 +19,7 @@ use crate::ui::{
 };
 use eframe::egui;
 use egui::{Context, Id};
+use crate::error_modal::ErrorModal;
 
 const APP_NAME: &str = "Rocket [0.0.19]";
 
@@ -46,6 +48,7 @@ struct Rocket<'a> {
     search_manager: SearchManager,
     actions: Actions,
     icons_manager: IconsManager<'a>,
+    general_error_modal: ErrorModal,
 }
 
 impl Default for Rocket<'_> {
@@ -55,12 +58,14 @@ impl Default for Rocket<'_> {
         let search_manager = SearchManager::new();
         let actions = Actions::new();
         let icons_manager = IconsManager::new();
+        let general_error_modal = ErrorModal::new();
         Self {
             lang_string,
             path_manager,
             search_manager,
             actions,
             icons_manager,
+            general_error_modal
         }
     }
 }
@@ -102,10 +107,13 @@ impl eframe::App for Rocket<'_> {
             central_panel::show(
                 ui,
                 &self.lang_string,
+                &mut self.general_error_modal,
                 &mut self.path_manager,
                 &mut self.actions,
                 &self.icons_manager,
             );
         });
+
+        self.general_error_modal.render(ctx);
     }
 }

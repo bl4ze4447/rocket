@@ -1,9 +1,9 @@
 use egui::{Align2, Color32, FontFamily, FontId, Response, Sense, StrokeKind, Ui, Vec2};
 
 pub fn file_widget(ui: &mut Ui, selected: bool, text: &String) -> Response {
-    let desired_space = ui.spacing().interact_size.y * egui::vec2(1.0, 2.0);
+    let desired_space = ui.spacing().interact_size.y * egui::vec2(1.0, 1.65);
     let (id, rect) =
-        ui.allocate_space(desired_space + Vec2::new(15.0 * text.len() as f32 / 1.5, 0.0));
+        ui.allocate_space(desired_space);
     let response = ui.interact(rect, id, Sense::click_and_drag());
 
     response.widget_info(|| {
