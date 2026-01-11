@@ -1,4 +1,3 @@
-use rayon::prelude::*;
 use std::env::home_dir;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -75,9 +74,9 @@ impl PathManager {
                 self.deleted_folder = false;
                 entries
             }
-            Err(e) => {
+            Err(err) => {
                 self.deleted_folder = true;
-                return Err(e);
+                return Err(err);
             }
         };
 

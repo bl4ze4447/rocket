@@ -37,9 +37,6 @@ pub struct KeySelect {
 
     /// Do we need to scroll to the widget?
     pub scroll_to_widget: bool,
-
-    /// Where is the scrollbar currently?
-    pub scroll_offset_y: f32,
 }
 
 pub struct SelectAction {
@@ -64,7 +61,6 @@ impl SelectAction {
                 key: Key::A,
                 was_pressed: false,
                 scroll_to_widget: false,
-                scroll_offset_y: 0.0,
             },
         }
     }
@@ -141,14 +137,6 @@ impl SelectAction {
 
     pub fn deselect_file(&mut self, file: &PathBuf) {
         self.files.retain(|f| *f != *file);
-    }
-
-    pub fn toggle_selection_mode(&mut self) {
-        self.mode = match self.mode {
-            SelectionMode::Single => SelectionMode::Multiple,
-            SelectionMode::Multiple => SelectionMode::Single,
-            SelectionMode::Ranged => SelectionMode::Ranged,
-        }
     }
 
     pub fn clear_selection(&mut self) {

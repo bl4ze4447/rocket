@@ -33,9 +33,8 @@ impl IconsManager<'_> {
                         icons.insert(file_stem.into(), Image::from_bytes(uri, raw_bytes));
                     }
 
-                    Err(e) => {
-                        // todo: better error handling
-                        println!("cannot read bytes: {}", e);
+                    Err(err) => {
+                        eprintln!("[IconsManager->load_icons<'a>()->read(&file_path)] Cannot read file ({:?}): {}", file_path, err);
                     }
                 }
             }
@@ -67,9 +66,8 @@ impl IconsManager<'_> {
                 icons = Self::load_icons(&mut entries);
             }
 
-            Err(e) => {
-                // todo: error modal
-                println!("cannot read icons dir: {}", e);
+            Err(err) => {
+                eprintln!("[IconsManager->new()->fs::read_dir()] Cannot read icons_folder ({:?}): {}", icons_folder, err);
             }
         }
 
