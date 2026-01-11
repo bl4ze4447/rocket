@@ -1,5 +1,6 @@
 use crate::actions::select_action::SelectAction;
 
+mod copy_action;
 pub mod select_action;
 
 pub struct Actions {
